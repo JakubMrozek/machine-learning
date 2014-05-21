@@ -1,3 +1,9 @@
+###
+Simple Gradient Descent implementation.
+
+###
+
+
 # training set
 set = [
 	[ 0, 4 ]
@@ -48,6 +54,7 @@ suma1 = (theta0, theta1) ->
 	result
 
 
+
 costFn0 = (theta0, theta1) ->
 	theta0 - alpha * (1/m) * suma0(theta0, theta1)
 
@@ -56,22 +63,26 @@ costFn1 = (theta0, theta1) ->
 	theta1 - alpha * (1/m) * suma1(theta0, theta1)	
 
 
-calculate = (theta0, theta1, count = 1) ->
-	if count is maxIterations
-		return [theta0, theta1, false, count]
-	t0 = costFn0 theta0, theta1
-	t1 = costFn1 theta0, theta1
-	++count
-	if t0 is theta0 and t1 is theta1
-		return [t0, t1, true, count]
-	else 
-		return calculate t0, t1, count
+calculate = (debug = false)->
+	theta0 = initialTheta0
+	theta1 = initialTheta1
+
+	for i in [0...maxIterations]
+		if debug then console.log theta0, theta1
+		t0 = costFn0 theta0, theta1
+		t1 = costFn1 theta0, theta1
+		if t0 is theta0 and t1 is theta1
+			return [t0, t1, true, i + 1]
+		theta0 = t0
+		theta1 = t1
+
+	[theta0, theta1, false, maxIterations]
 
 
 
 
 # find best result!
-[theta0, theta1, found, totalCount] = calculate initialTheta0, initialTheta1
+[theta0, theta1, found, totalCount] = calculate()
 
 
 console.log theta0, theta1, found, totalCount
