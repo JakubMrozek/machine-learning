@@ -1,5 +1,5 @@
 ###
-Simple Gradient Descent implementation.
+Simple Gradient Descent - simple implementation.
 
 ###
 
@@ -14,7 +14,7 @@ set = [
 
 
 # learning rate
-alpha = 0.39
+alpha = 0.4431
 
 
 # number of examples
@@ -26,7 +26,7 @@ initialTheta0 = 3
 
 
 # initial value of theta1
-initialTheta1 = 5
+initialTheta1 = 50
 
 
 # max iterations of algoritm
@@ -82,7 +82,7 @@ calculate = (debug = false)->
 
 
 # find best result!
-[theta0, theta1, found, totalCount] = calculate()
+[theta0, theta1, found, totalCount] = calculate true
 
 
 console.log theta0, theta1, found, totalCount

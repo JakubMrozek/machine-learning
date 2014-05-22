@@ -1,0 +1,23 @@
+{
+  "name": "machine-learning",
+  "version": "0.0.0",
+  "description": "machine-learning ================",
+  "main": "index.js",
+  "dependencies": {
+    "mathjs": "^0.21.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/JakubMrozek/machine-learning.git"
+  },
+  "author": "Jakub Mrozek <jakub.mrozek@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/JakubMrozek/machine-learning/issues"
+  },
+  "homepage": "https://github.com/JakubMrozek/machine-learning"
+}
