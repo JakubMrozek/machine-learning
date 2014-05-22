@@ -43,7 +43,7 @@ createY = ->
 
 # [1], [1], [1]
 createTheta = ->
-	length = set[0].length + 1
+	length = set[0][0].length + 1
 	math.ones [length, 1]
 
 
