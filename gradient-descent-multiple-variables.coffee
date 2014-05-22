@@ -9,9 +9,9 @@ math = require('mathjs')()
 # training set
 set = [
 	[[0, 1], 2]
-	[[1, 2], 4]
-	[[2, 3], 6]
-	[[4, 5], 8] 
+	[[1, 5], 4]
+	[[2, 6], 6]
+	[[4, 9], 8] 
 ]
 
 
@@ -72,7 +72,7 @@ calculate = (debug = false)->
 			return [t, true, i + 1]
 		theta = t
 
-	[theta, false, maxIterations]
+	[theta.toArray(), false, maxIterations]
 
 	
 
