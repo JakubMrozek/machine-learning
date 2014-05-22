@@ -1,5 +1,5 @@
 ###
-Simple Gradient Descent - matrix implementation.
+Linear regression with gradient descent - matrix implementation.
 
 ###
 

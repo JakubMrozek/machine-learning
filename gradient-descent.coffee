@@ -1,5 +1,5 @@
 ###
-Simple Gradient Descent - simple implementation.
+Linear regression with gradient descent - simple implementation.
 
 ###
 
