@@ -177,4 +177,3 @@ testData =
 bp = new BackPropagation 3, [2, 2, 1], 0.3, 0.1
 
 bp.run trainingSet, testData
-
