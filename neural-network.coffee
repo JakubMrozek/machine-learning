@@ -48,9 +48,6 @@ class BackPropagation
 
 
 
-    ###
-        Propocet rozdilu mezi nami vypocitanou hodnotou hypotezy a skutecnou hodnotou (y)
-    ###
     mse: (target) ->
         mse = 0
         for key, result of @output[@numLayers-1]
@@ -59,12 +56,16 @@ class BackPropagation
 
 
 
-    ffwd: (inputSource) ->
+    out: (i) ->
+        @output[@numLayers-1][i]
 
+
+
+
+    ffwd: (inputSource) ->
         # assign content to input layer
         for i in [0...@layersSize[0]]
             @output[0][i] = inputSource[i]
-
 
         # assign output (activation) value to each neuron usng sigmoid func
         for i in [1...@layersSize.length]
@@ -119,39 +120,61 @@ class BackPropagation
 
 
 
-    run: (data) ->
-        thresh =  0.0001
-        numEpoch = 1
+    run: (data, testData) ->
+        thresh =  0.001
+        numEpoch = 100000
         numPattern = Object.keys(data).length
         numInput = data[0].length
         mse = 0
 
-        for e in [0...numEpoch]
+        for e in [0..numEpoch]
             key = e % numPattern
             @bpgt data[key], data[key][numInput-1]
 
             mse = @mse data[key][numInput-1]
 
+            console.log mse
+
             if mse < thresh
                 console.log "Network Trained. Threshold value achieved in #{e} iterations."
-                console.log "MSE: #{MSE}."
+                console.log "mse: #{mse}."
+                console.log @weight
+                break;
+
+            console.log e
+
+
+        console.log "\n"
+
+
+        for key, test of testData
+            @ffwd test
+            console.log 'test start'
+            console.log test
+            console.log @out 0
+            console.log "#{test[0]} XOR #{test[1]} = #{Math.round(@out 0)}"
+            console.log "test end\n\n"
+
 
 
 
 
 trainingSet = 
-    0: [0, 0, 0, 0]
-    1: [0, 0, 1, 1]
-    2: [0, 1, 0, 1]
-    3: [0, 1, 1, 0]
-    4: [1, 0, 0, 1]
-    5: [1, 0, 1, 0]
-    6: [1, 1, 0, 0]
-    7: [1, 1, 1, 1]
+    0: [0, 0, 1]
+    1: [0, 1, 0]
+    2: [1, 0, 0]
+    3: [1, 1, 1]
+
+
+testData = 
+    0: [0, 0]
+    1: [0, 1]
+    2: [1, 0]
+    3: [1, 1]
 
 
 
+bp = new BackPropagation 3, [2, 2, 1], 0.3, 0.1
 
-bp = new BackPropagation 4, [3, 3, 3, 1], 0.3, 0.1
-bp.run trainingSet
+bp.run trainingSet, testData
 
