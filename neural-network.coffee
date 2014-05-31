@@ -1,232 +1,157 @@
-math = require('mathjs')()
-
 ###
-
-[ +1 ]  ---> [ +1 ]
-
-[ x1 ]  ---> [ a1 ]  ---> [ a1 ]  ---> h()
-
-[ x2 ]  ---> [ a2 ]
-
+Based on http://freedelta.free.fr/r/php-code-samples/artificial-intelligence-neural-network-backpropagation/
 ###
 
 
 
-# training set
-set = [
-	[ [0, 0], 1 ]
-	[ [0, 1], 0 ]
-	[ [1, 0], 0 ]
-	[ [1, 1], 1 ] 
-]
+class BackPropagation
 
 
-testTheta = [ 
-	[ 
-		[]
-	],
-  	[ 
-  		[ -30, 20, 20 ],
-    	[ 10, -20, -20 ] 
-    ],
-  	[ 
-  		[ -10, 20, 20 ] 
-  	] 
-]
+    constructor: (@numLayers, @layersSize, @beta, @alpha) ->
+        @weight = {}
+        @prevDwt = {}
+        @output = {}
+        @delta = {}
 
+        @output[l] = {} for l in [0...@layersSize.length]
+        @delta[l] = {} for l in [1...@layersSize.length]
 
+        @initWeights()
+        @initPrevWeights()
 
-###
-[ 
-	[ [ 0, 0, 0 ], [ 0, 0, 0 ], [ 0, 0, 0 ] ],
-  	[ [ 0, 0, 0 ], [ 0, 0, 0 ], [ 0, 0, 0 ] ],
-  	[ [ 0, 0, 0 ], [ 0, 0, 0 ], [ 0, 0, 0 ] ] 
 
-  	layers cislovany od 0, tj. 0 = input, 1 = hidden, 2 = output 
-]
-###
-initDeltaBig = ->
-	outArray = []
-	for l in [0..2]
-		inArray = []
-		for j in [0..2]
-			inArray.push (0 for num in [0..2])
-		outArray.push inArray
-	outArray
 
+    initWeights: ->
+        for i in [1...@layersSize.length]
+            @weight[i] = {}
+            for j in [0...@layersSize[i]]
+                @weight[i][j] = {}
+                for k in [0..@layersSize[i-1]]
+                    @weight[i][j][k] = Math.random()
+                @weight[i][j][@layersSize[i-1]] = -1
 
 
-randomValues = ->
-	(Math.random() for i in [0..2])
 
+    initPrevWeights: ->
+        for i in [1...@layersSize.length]
+            @prevDwt[i] = {}
+            for j in [0...@layersSize[i]]
+                @prevDwt[i][j] = {}
+                for k in [0..@layersSize[i-1]]
+                    @prevDwt[i][j][k] = 0
 
 
-initRandomTheta = ->
-	theta = []
-	theta.push [[]]
-	theta.push [randomValues(), randomValues()]
-	theta.push [randomValues()]
-	theta
 
 
+    sigmoid: (inputSource) ->
+        1/(1 + Math.exp(-inputSource))
 
-g = (z) ->
-	pow = math.pow math.E, -z
-	1 / (1 + pow)
 
 
+    ###
+        Propocet rozdilu mezi nami vypocitanou hodnotou hypotezy a skutecnou hodnotou (y)
+    ###
+    mse: (target) ->
+        mse = 0
+        for key, result of @output[@numLayers-1]
+            mse += (target - result) * (target - result) 
+        mse / 2
 
-###
-	Vypocet pro hidden a theta vrstvu
-###
-forwardPropagation = (t, theta) ->
-	layer0 = t[0]
-	layer1 = []
-	layer2 = []
 
-	layer1.push g( theta[1][0][0] + layer0[0] * theta[1][0][1] + layer0[1] * theta[1][0][2] )
-	layer1.push g( theta[1][1][0] + layer0[0] * theta[1][1][1] + layer0[1] * theta[1][1][2] )
 
-	layer2.push g( theta[2][0][0] + layer1[0] * theta[2][0][1] + layer1[1] * theta[2][0][2] )
+    ffwd: (inputSource) ->
 
-	[layer0, layer1, layer2]
+        # assign content to input layer
+        for i in [0...@layersSize[0]]
+            @output[0][i] = inputSource[i]
 
 
+        # assign output (activation) value to each neuron usng sigmoid func
+        for i in [1...@layersSize.length]
+            for j in [0...@layersSize[i]]
+                sum = 0
+                for k in [0...@layersSize[i-1]]
+                    sum += @output[i-1][k] * @weight[i][j][k]
+                sum += @weight[i][j][@layersSize[i - 1]]
+                @output[i][j] = @sigmoid sum
 
 
 
 
-calculate = (theta) ->
-	deltaBig = initDeltaBig()
+    bpgt: (inputSource, target) ->
+        @ffwd inputSource
 
-	for t in set
-		a = forwardPropagation t, theta
-		console.log a[2]
+        # delta for output value
+        for i in [0...@layersSize[@numLayers - 1]]
+            a = @output[@numLayers - 1][i]
+            @delta[@numLayers - 1][i] = a * (1 - a) * (target - a)
+            # @delta[@numLayers - 1][i] = a-target
 
 
-calculate testTheta
+        # delta for hidden layers
+        for i in [(@numLayers - 2)...0]
+            for j in [0...@layersSize[i]]
+                sum = 0
+                for k in [0...@layersSize[i+1]]
+                    sum += @delta[i+1][k] * @weight[i+1][k][j]
+                @delta[i][j] = @output[i][j] * (1 - @output[i][j]) * sum
 
 
+        # monumentum
+        for i in [1...@numLayers]
+            for j in [0...@layersSize[i]] 
+                for k in [0...@layersSize[i-1]]
+                    @weight[i][j][k] += @alpha * @prevDwt[i][j][k]
+                @weight[i][j][@layersSize[i-1]] += @alpha * @prevDwt[i][j][@layersSize[i-1]]
 
 
 
+        # gradient descent
+        for i in [1...@layersSize.length]
+            for j in [0...@layersSize[i]]
+                for k in [0...@layersSize[i-1]]
+                    @prevDwt[i][j][k] = @beta * @delta[i][j] * @output[i-1][k]
+                    @weight[i][j][k] += @prevDwt[i][j][k] 
 
+                @prevDwt[i][j][@layersSize[i-1]] = @beta * @delta[i][j] 
+                @weight[i][j][@layersSize[i-1]] += @prevDwt[i][j][@layersSize[i-1]]
+            
 
-###
 
 
-numLayers = 3
-numActivations  = 3 
-numCalculations = 3
+    run: (data) ->
+        thresh =  0.0001
+        numEpoch = 1
+        numPattern = Object.keys(data).length
+        numInput = data[0].length
+        mse = 0
 
+        for e in [0...numEpoch]
+            key = e % numPattern
+            @bpgt data[key], data[key][numInput-1]
 
-# l = layer
-# j = node j in layer l (rows)
-# i = calculation i in node j
+            mse = @mse data[key][numInput-1]
 
+            if mse < thresh
+                console.log "Network Trained. Threshold value achieved in #{e} iterations."
+                console.log "MSE: #{MSE}."
 
-initDeltaBig = ->
-	delta = {}
-	for l in [1..numLayers]
-		delta[l] = {}
-		for j in [1..numActivations]
-			delta[l][j] = {}
-			for i in [0..numCalculations]
-				delta[l][j][i] = 0
-	delta
 
 
 
-initTheta = ->
-	1: 
-		1:
-			0: Math.random()
-			1: Math.random()
-			2: Math.random()
-		2: 
-			0: Math.random()
-			1: Math.random()
-			2: Math.random()
-	2: 
-		1:
-			0: Math.random()
-			1: Math.random()
-			2: Math.random()
+trainingSet = 
+    0: [0, 0, 0, 0]
+    1: [0, 0, 1, 1]
+    2: [0, 1, 0, 1]
+    3: [0, 1, 1, 0]
+    4: [1, 0, 0, 1]
+    5: [1, 0, 1, 0]
+    6: [1, 1, 0, 0]
+    7: [1, 1, 1, 1]
 
 
 
 
-g = (z) ->
-	pow = math.pow math.E, -z
-	1 / (1 + pow)
+bp = new BackPropagation 4, [3, 3, 3, 1], 0.3, 0.1
+bp.run trainingSet
 
-
-
-forwardPropagation = (t, theta) ->
-	a = {}
-
-	# 1. (input) layer
-	a[1] =
-		'1': t[0][0]
-		'2': t[0][1]
-
-	# 2 (hidden) layer
-	a[2] = 
-		'1': g(theta[1][1][0] + a[1][1] * theta[1][1][1] + a[1][2] * theta[1][1][2])
-		'2': g(theta[1][2][0] + a[1][1] * theta[1][2][1] + a[1][2] * theta[1][2][2])
-
-	# 3. (output) layer (hypotesis)
-	a[3] =
-		'1': g(theta[2][1][0] + a[2][1] * theta[2][1][1] + a[2][2] * theta[2][1][2])
-
-	a
-
-
-deltaSmall3 = (t, a) ->
-	[t[1] - a[3][1]]
-
-
-
-deltaSmall2 = (t, a, nextDeltaSmall, theta) ->
-	output = []
-	for i in [1, 2]
-		output.push (theta[2][1][i] * nextDeltaSmall[0]) * a[2][i] * (1 - a[2][1])
-	output
-
-
-
-calculate = (theta) ->
-	deltaBig = initDeltaBig()
-	deltaSmall = {}
-
-	for t in set
-		a = forwardPropagation t, theta
-
-		deltaSmall[3] = deltaSmall3 t, a
-		deltaSmall[2] = deltaSmall2 t, a, deltaSmall[3], theta
-
-		# l = 1, j = 1, i 
-		deltaBig[1][1][1] = deltaBig[1][1][1] + a[1][1] * deltaSmall[2][0] 
-		deltaBig[1][1][2] = deltaBig[1][1][2] + a[1][1] * deltaSmall[2][1] 
-
-		# l = 1, j = 2, i
-		deltaBig[1][2][1] = deltaBig[1][2][1] + a[1][2] * deltaSmall[2][0] 
-		deltaBig[1][2][2] = deltaBig[1][2][2] + a[1][2] * deltaSmall[2][1] 
-
-		# l = 2, j = 1, i
-		deltaBig[2][1][1] = deltaBig[2][1][1] + a[2][1] * deltaSmall[3][0]
-		deltaBig[2][1][2] = deltaBig[2][1][2] + a[2][1] * deltaSmall[3][0]
-
-		# l = 2, j = 2, i
-		deltaBig[2][2][1] = deltaBig[2][2][1] + a[2][2] * deltaSmall[3][0]
-		deltaBig[2][2][2] = deltaBig[2][2][2] + a[2][2] * deltaSmall[3][0]
-
-	deltaBig
-		
-
-
-delta = calculate initTheta()
-
-console.log delta
-
-###
