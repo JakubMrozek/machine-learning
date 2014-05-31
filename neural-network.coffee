@@ -61,6 +61,14 @@ class BackPropagation
 
 
 
+    calcMomentum: ->
+        for i in [1...@numLayers]
+            for j in [0...@layersSize[i]] 
+                for k in [0...@layersSize[i-1]]
+                    @weight[i][j][k] += @alpha * @prevDwt[i][j][k]
+                @weight[i][j][@layersSize[i-1]] += @alpha * @prevDwt[i][j][@layersSize[i-1]]
+
+
 
     ffwd: (inputSource) ->
         # assign content to input layer
@@ -86,7 +94,7 @@ class BackPropagation
         for i in [0...@layersSize[@numLayers - 1]]
             a = @output[@numLayers - 1][i]
             @delta[@numLayers - 1][i] = a * (1 - a) * (target - a)
-            # @delta[@numLayers - 1][i] = a-target
+            #@delta[@numLayers - 1][i] = a-target
 
 
         # delta for hidden layers
@@ -98,13 +106,7 @@ class BackPropagation
                 @delta[i][j] = @output[i][j] * (1 - @output[i][j]) * sum
 
 
-        # monumentum
-        for i in [1...@numLayers]
-            for j in [0...@layersSize[i]] 
-                for k in [0...@layersSize[i-1]]
-                    @weight[i][j][k] += @alpha * @prevDwt[i][j][k]
-                @weight[i][j][@layersSize[i-1]] += @alpha * @prevDwt[i][j][@layersSize[i-1]]
-
+        @calcMomentum()
 
 
         # gradient descent
@@ -133,18 +135,16 @@ class BackPropagation
 
             mse = @mse data[key][numInput-1]
 
-            console.log mse
+            console.log "#{mse} (#{e})"
 
             if mse < thresh
+                console.log "\n\n"
                 console.log "Network Trained. Threshold value achieved in #{e} iterations."
                 console.log "mse: #{mse}."
+                console.log "iteration no. #{e}."
                 console.log @weight
+                console.log "\n\n"
                 break;
-
-            console.log e
-
-
-        console.log "\n"
 
 
         for key, test of testData
